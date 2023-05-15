@@ -29,13 +29,11 @@ class RegistrationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Encode the new users password
+
             $user->setPassword($this->passwordEncoder->hashPassword($user, $user->getPassword()));
 
-            // Set their role
             $user->setRoles(['ROLE_USER']);
 
-            // Save
             $this->em->persist($user);
             $this->em->flush();
 

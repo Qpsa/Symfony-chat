@@ -28,7 +28,6 @@ class MessagesController extends AbstractController
      */
     public function index(Request $request)
     {
-//        $this->denyAccessUnlessGranted('ROLE_USER');
         $message = new Message();
         $form = $this->createForm(MessageType::class, $message);
 

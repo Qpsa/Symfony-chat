@@ -12,14 +12,18 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class ReceivedMessagesController extends AbstractController
 {
 
+    const MAX_RESULTS_PER_PAGE = '5';
+
     public function __construct(private readonly UserRepository $userRepository,
                                 private readonly MessageRepository $messageRepository,
-                                private EntityManagerInterface $em,
-                                private TokenStorageInterface $token)
+                                private readonly EntityManagerInterface $em,
+                                private readonly TokenStorageInterface $token,
+                                private readonly SerializerInterface $serializer)
     {
 
     }
@@ -35,19 +39,18 @@ class ReceivedMessagesController extends AbstractController
         $messages = $this->messageRepository->findAllReceivedMessagesBy($user);
 
         $pagerfanta = new Pagerfanta(new ArrayAdapter($messages));
-        $pagerfanta->setMaxPerPage(5);
-
-        $data = [];
+        $pagerfanta->setMaxPerPage(self::MAX_RESULTS_PER_PAGE);
 
         foreach ($pagerfanta->getCurrentPageResults() as $message) {
-            $data[] = [
+            $text[] = [
                 'id' => $message->getId(),
                 'text' => $message->getText(),
                 'sender' => $message->getSender()->getId(),
                 'receiver' => $message->getReceiver()->getId(),
             ];
+            $jsonContent = $this->serializer->serialize($text, 'json');
+            $array = json_decode($jsonContent, true);
         }
-
-        return $this->json($data);
+        return $this->json($array);
     }
 }

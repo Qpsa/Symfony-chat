@@ -18,7 +18,6 @@ class MessageManager
 
     public function save(Message $message): void
     {
-        // Save
         $this->em->persist($message);
         $this->em->flush();
     }

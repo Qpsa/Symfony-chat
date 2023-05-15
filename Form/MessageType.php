@@ -28,7 +28,6 @@ class MessageType extends AbstractType
         $builder
             ->add('text', TextType::class)
             ->add('receiver', EntityType::class, [
-                // looks for choices from this entity
                 'class' => User::class,
                 'query_builder' => function (UserRepository $userRepository) use ($user) {
                     return $userRepository->findUsersExcept($user);

@@ -3,17 +3,23 @@
 namespace App\Controller;
 
 use App\Repository\ProjectRepository;
+use App\Service\ProjectFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Project;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class ProjectController extends AbstractController
 {
 
-    public function __construct(private readonly ProjectRepository $projectRepository, private readonly EntityManagerInterface $em)
+    public function __construct(
+        private readonly ProjectRepository $projectRepository,
+        private readonly EntityManagerInterface $em,
+        private readonly ProjectFactory $projectFactory,
+        private readonly SerializerInterface $serializer)
     {
 
     }
@@ -27,13 +33,10 @@ class ProjectController extends AbstractController
         $data = [];
 
         foreach ($products as $product) {
-            $data[] = [
-                'id' => $product->getId(),
-                'name' => $product->getName(),
-                'description' => $product->getDescription(),
-            ];
+            $jsonContent = $this->serializer->serialize($product, 'json');
+            $array = json_decode($jsonContent, true);
+            $data[] = $array;
         }
-
 
         return $this->json($data);
     }
@@ -43,15 +46,7 @@ class ProjectController extends AbstractController
      */
     public function new(Request $request): Response
     {
-
-        $project = new Project();
-        $project->setName($request->request->get('name'));
-        $project->setDescription($request->request->get('description'));
-
-        $this->em->persist($project);
-        $this->em->flush();
-
-        return $this->json('Created new project successfully with id ' . $project->getId());
+        $this->projectFactory->createNew($request);
     }
 
     /**
